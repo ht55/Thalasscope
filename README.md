@@ -3,7 +3,7 @@
 ### Watch two AI minds think — diverge.
 
 <p align="center">
-  <img src="thalasscope1.png" height="200" alt="App Screenshot" />
+  <img src="Thalasscope1.png" height="200" alt="App Screenshot" />
   <img src="thalasscope2.png" height="200" alt="App Screenshot" />
 </p>
 
