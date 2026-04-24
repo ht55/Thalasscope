@@ -218,7 +218,6 @@ thinking-visualizer/
 ## Notes
 
 - Original SVG artwork and animated background created in Corel
-- Font: Sylvar
 - Personal / portfolio project
 
 ---
