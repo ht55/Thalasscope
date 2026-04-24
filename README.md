@@ -3,7 +3,8 @@
 ### Watch two AI minds think — diverge.
 
 ![Thalasscope landing page](thalasscope1.png)
-![Thalasscope run page](thalasscope2.png)
+
+**🤖 Live Demo → [Thalasscope](https://thalasscope.ht55.dev)**
 
 ---
 
