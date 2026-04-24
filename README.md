@@ -2,7 +2,10 @@
 
 ### Watch two AI minds think — diverge.
 
-![Thalasscope landing page](thalasscope1.png)
+<p align="center">
+  <img src="thalasscope1.png" height="200" alt="App Screenshot" />
+  <img src="thalasscope2.png" height="200" alt="App Screenshot" />
+</p>
 
 **🤖 Live Demo → [Thalasscope](https://thalasscope.ht55.dev)**
 
