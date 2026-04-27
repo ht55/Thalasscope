@@ -229,4 +229,4 @@ This project is licensed under the [PolyForm Noncommercial License 1.0.0](https:
 Free to use and share for noncommercial purposes.  
 For commercial use inquiries, please reach out at [contact@ht55.dev](mailto:contact@ht55.dev).
 
-© 2026 [Hiroko Takano / ht55.dev]
+© 2026 [ht55.dev]
