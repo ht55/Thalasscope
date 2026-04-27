@@ -37,6 +37,10 @@ export default function RunPage() {
   const [running, setRunning] = useState(false)
   const [model37, setModel37] = useState<ModelState>(EMPTY_STATE)
   const [model46, setModel46] = useState<ModelState>(EMPTY_STATE)
+  const [savedAcc, setSavedAcc] = useState<{
+    haiku: { thinking: string; response: string; inputTokens: number; outputTokens: number }
+    sonnet: { thinking: string; response: string; inputTokens: number; outputTokens: number }
+  } | null>(null)
   const [history, setHistory] = useState<Array<{
     id: string
     prompt: string
@@ -69,14 +73,14 @@ export default function RunPage() {
         response: '',
         inputTokens: 0,
         outputTokens: 0,
-        sources: [] as { title: string; url: string; snippet: string }[],
+        
       },
       'claude-sonnet-4-6': {
         thinking: '',
         response: '',
         inputTokens: 0,
         outputTokens: 0,
-        sources: [] as { title: string; url: string; snippet: string }[],
+        
       },
     }
 
@@ -151,10 +155,6 @@ export default function RunPage() {
                 thinking?: string
                 text?: string
               }
-              content_block?: {
-                type: string
-                source?: { url: string; title: string; encrypted_content: string }
-              }
               usage?: { output_tokens?: number }
               message?: {
                 usage?: { input_tokens?: number; output_tokens?: number }
@@ -204,23 +204,6 @@ export default function RunPage() {
             }
           }
 
-          // Web search source block
-          if (
-            event.type === 'content_block_start' &&
-            event.content_block?.type === 'tool_result'
-          ) {
-            const src = event.content_block.source
-            if (src) {
-              acc.sources.push({ title: src.title, url: src.url, snippet: '' })
-              addBlock(model, {
-                id: `src-${Date.now()}-${Math.random()}`,
-                label: 'searching the web',
-                text: `${src.title}\n${src.url}`,
-                type: 'search',
-              })
-            }
-          }
-
           // Output tokens — message_delta
           if (event.type === 'message_delta') {
             if (event.usage?.output_tokens) {
@@ -254,17 +237,34 @@ export default function RunPage() {
       }
     } catch (err) {
       console.error('Compare error:', err)
+
     } finally {
-      setRunning(false)
-      setHistory(prev => [{
-        id: Date.now().toString(),
-        prompt,
-        timestamp: new Date().toLocaleTimeString(),
-        model37: { blocks: [], tokens: 0, timeMs: 0, wordCount: 0, done: true },
-        model46: { blocks: [], tokens: 0, timeMs: 0, wordCount: 0, done: true },
-      }, ...prev])
+        setRunning(false)
+        setSavedAcc({
+          haiku: {
+            thinking: accumulated['claude-haiku-4-5'].thinking,
+            response: accumulated['claude-haiku-4-5'].response,
+            inputTokens: accumulated['claude-haiku-4-5'].inputTokens,
+            outputTokens: accumulated['claude-haiku-4-5'].outputTokens,
+            
+          },
+          sonnet: {
+            thinking: accumulated['claude-sonnet-4-6'].thinking,
+            response: accumulated['claude-sonnet-4-6'].response,
+            inputTokens: accumulated['claude-sonnet-4-6'].inputTokens,
+            outputTokens: accumulated['claude-sonnet-4-6'].outputTokens,
+            
+          },
+        })
+        setHistory(prev => [{
+          id: Date.now().toString(),
+          prompt,
+          timestamp: new Date().toLocaleTimeString(),
+          model37: { blocks: [], tokens: 0, timeMs: 0, wordCount: 0, done: true },
+          model46: { blocks: [], tokens: 0, timeMs: 0, wordCount: 0, done: true },
+        }, ...prev])
+      }
     }
-  }
 
   const handleNewPrompt = () => {
     setPrompt('')
@@ -481,6 +481,74 @@ export default function RunPage() {
               boxShadow: '0 4px 10px rgba(0,0,0,0.8)',
             }}
           >← Home</button>
+
+          {/* Save to DB — Supabaseキーがある場合のみ表示 */}
+          {sessionStorage.getItem('supabase_url') && (model37.done || model46.done) && (
+            <button
+              onClick={() => {
+                const supabaseUrl = sessionStorage.getItem('supabase_url')
+                const supabaseAnonKey = sessionStorage.getItem('supabase_anon_key')
+
+                if (!supabaseUrl || !supabaseAnonKey || !savedAcc) return
+
+                fetch('/api/sessions', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    supabaseUrl,
+                    supabaseAnonKey,
+                    session: {
+                      prompt,
+                      prompt_category: null,
+                      prompt_complexity: null,
+                      prompt_summary: null,
+                    },
+                    responses: [
+                      {
+                        model: 'claude-haiku-4-5',
+                        thinking_text: savedAcc.haiku.thinking,
+                        thinking_word_count: savedAcc.haiku.thinking.split(' ').length,
+                        thinking_duration_ms: model37.timeMs,
+                        response_text: savedAcc.haiku.response,
+                        response_word_count: savedAcc.haiku.response.split(' ').length,
+                        total_duration_ms: model37.timeMs,
+                        input_tokens: savedAcc.haiku.inputTokens,
+                        output_tokens: savedAcc.haiku.outputTokens,
+                      },
+                      {
+                        model: 'claude-sonnet-4-6',
+                        thinking_text: savedAcc.sonnet.thinking,
+                        thinking_word_count: savedAcc.sonnet.thinking.split(' ').length,
+                        thinking_duration_ms: model46.timeMs,
+                        response_text: savedAcc.sonnet.response,
+                        response_word_count: savedAcc.sonnet.response.split(' ').length,
+                        total_duration_ms: model46.timeMs,
+                        input_tokens: savedAcc.sonnet.inputTokens,
+                        output_tokens: savedAcc.sonnet.outputTokens,
+                      },
+                    ],
+                  }),
+                })
+                .then(() => alert('Saved to Supabase!'))
+                .catch(err => console.error('Save error:', err))
+              }}
+              style={{
+                width: '100%',
+                fontFamily: "'Sylvar', serif",
+                fontSize: '14px',
+                padding: '8px',
+                borderRadius: '999px',
+                border: '3px solid #000',
+                background: '#1F1F1F',
+                color: '#95FF00',
+                cursor: 'pointer',
+                textShadow: '0 1px 4px rgba(0,0,0,0.8)',
+                boxShadow: '0 4px 10px rgba(0,0,0,0.8)',
+              }}
+            >
+              Save to DB
+            </button>
+          )}
 
           {history.length > 0 && (
             <div style={{

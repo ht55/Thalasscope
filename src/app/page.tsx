@@ -427,7 +427,7 @@ export default function HomePage() {
               </p>
 
               <input
-                type="text"
+                type="password"
                 value={supabaseUrl}
                 onChange={e => setSupabaseUrl(e.target.value)}
                 placeholder="https://xxx.supabase.co"

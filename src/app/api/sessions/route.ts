@@ -43,6 +43,7 @@ export async function POST(req: NextRequest) {
       total_duration_ms: number
       input_tokens: number
       output_tokens: number
+      sources: { title: string; url: string; snippet: string }[] 
     }) => ({
       session_id: sessionData.id,
       model: r.model,
@@ -54,6 +55,7 @@ export async function POST(req: NextRequest) {
       total_duration_ms: r.total_duration_ms,
       input_tokens: r.input_tokens,
       output_tokens: r.output_tokens,
+      sources: r.sources ?? [],
     }))
   )
 
