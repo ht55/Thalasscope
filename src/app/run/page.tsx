@@ -37,6 +37,7 @@ export default function RunPage() {
   const [running, setRunning] = useState(false)
   const [model37, setModel37] = useState<ModelState>(EMPTY_STATE)
   const [model46, setModel46] = useState<ModelState>(EMPTY_STATE)
+  const [hasSupabase, setHasSupabase] = useState(false)
   const [savedAcc, setSavedAcc] = useState<{
     haiku: { thinking: string; response: string; inputTokens: number; outputTokens: number }
     sonnet: { thinking: string; response: string; inputTokens: number; outputTokens: number }
@@ -52,6 +53,7 @@ export default function RunPage() {
   useEffect(() => {
     const key = sessionStorage.getItem('anthropic_api_key')
     if (!key) router.push('/')
+    setHasSupabase(!!sessionStorage.getItem('supabase_url'))
   }, [router])
 
   const handleCompare = async () => {
@@ -483,7 +485,7 @@ export default function RunPage() {
           >← Home</button>
 
           {/* Save to DB — Supabaseキーがある場合のみ表示 */}
-          {sessionStorage.getItem('supabase_url') && (model37.done || model46.done) && (
+          {hasSupabase && (model37.done || model46.done) && (
             <button
               onClick={() => {
                 const supabaseUrl = sessionStorage.getItem('supabase_url')
